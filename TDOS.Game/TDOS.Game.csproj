@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Box2DX.Standard" Version="1.0.1" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL.Core" Version="3.8.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Content\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TDOS.Box2D.Skia\TDOS.Box2D.Skia.csproj" />
+    <ProjectReference Include="..\TDOS.MG.Skia\TDOS.MG.Skia.csproj" />
+    <ProjectReference Include="..\TDOS.MG.Utils\TDOS.MG.Utils.csproj" />
+  </ItemGroup>
+
+</Project>
