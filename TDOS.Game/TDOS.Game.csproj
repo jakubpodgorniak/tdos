@@ -20,4 +20,19 @@
     <ProjectReference Include="..\TDOS.MG.Utils\TDOS.MG.Utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Drawers.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Drawers.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Drawers.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Drawers.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

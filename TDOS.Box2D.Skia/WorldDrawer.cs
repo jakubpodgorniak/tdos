@@ -13,73 +13,58 @@ namespace TDOS.Box2D.Skia
         {
             this.world = world;
             this.pixelsPerUnit = pixelsPerUnit;
+            CollidersColor = SKColors.LightGreen;
+            CollidersWidth = 2;
         }
+
+        public SKColor CollidersColor { get; set; }
+
+        public int CollidersWidth { get; set; }
 
         public void Draw(SKCanvas canvas)
         {
-            var bodies = world.GetBodies();
-
             using (var paint = new SKPaint())
             {
-                paint.Color = SKColors.LightGreen;
+                paint.Color = CollidersColor;
+                paint.StrokeWidth = CollidersWidth;
                 paint.Style = SKPaintStyle.Stroke;
-                paint.StrokeWidth = 2;
 
-                foreach (var body in bodies)
+                foreach (var shape in world.GetBodies().SelectMany(body => body.GetShapes()))
                 {
-                    var bodyPosition = body.GetPosition();
-                    var bodyAngle = body.GetAngle();
-                    var shapes = body.GetShapes().ToArray();
+                    var body = shape.GetBody();
 
-                    foreach (var shape in shapes)
+                    if (shape is CircleShape circleShape)
                     {
-                        if (shape.GetType() == ShapeType.CircleShape)
-                        {
-                            var circleShape = shape as CircleShape;
-
-                            var shapeWorldPositon = body.GetWorldPoint(circleShape.GetLocalPosition());
-                            var point = new SKPoint(shapeWorldPositon.X * pixelsPerUnit, shapeWorldPositon.Y * pixelsPerUnit);
-
-                            canvas.DrawCircle(
-                                point,
-                                circleShape.GetRadius() * pixelsPerUnit,
-                                paint);
-                        }
-                        else if (shape.GetType() == ShapeType.PolygonShape)
-                        {
-                            var polygonShape = shape as PolygonShape;
-
-                            var vertices = polygonShape.GetVertices().Take(polygonShape.VertexCount).ToArray();
-
-                            DrawPath(canvas, paint, body, vertices);
-                        }
+                        canvas.DrawCircle(
+                            body.GetWorldPoint(circleShape.GetLocalPosition()).ToSKPoint(pixelsPerUnit),
+                            circleShape.GetRadius() * pixelsPerUnit,
+                            paint);
+                    }
+                    else if (shape is PolygonShape polygonShape)
+                    {
+                        canvas.DrawPath(
+                            GeneratePolygonPath(body, polygonShape.GetNonEmptyVertices()),
+                            paint);
                     }
                 }
             }
         }
 
-        private void DrawPath(SKCanvas canvas, SKPaint paint, Body body, Vec2[] vertices)
+        private SKPath GeneratePolygonPath(Body body, Vec2[] vertices)
         {
             var path = new SKPath();
-
-            var firstVertex = body.GetWorldPoint(vertices[0]);
-            var firstPoint = new SKPoint(firstVertex.X * pixelsPerUnit, firstVertex.Y * pixelsPerUnit);
+            var firstPoint = body.GetWorldPoint(vertices[0]).ToSKPoint(pixelsPerUnit);
 
             path.MoveTo(firstPoint);
-
             foreach (var vertex in vertices.Skip(1))
             {
-                var v = body.GetWorldPoint(vertex);
-                var point = new SKPoint(v.X * pixelsPerUnit, v.Y * pixelsPerUnit);
-
-                path.LineTo(point);
+                path.LineTo(body.GetWorldPoint(vertex).ToSKPoint(pixelsPerUnit));
             }
 
             path.LineTo(firstPoint);
-
             path.Close();
 
-            canvas.DrawPath(path, paint);
+            return path;
         }
 
         private readonly World world;

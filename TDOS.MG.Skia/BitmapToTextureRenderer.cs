@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SkiaSharp;
@@ -21,7 +22,8 @@ namespace TDOS.MG.Skia
             Texture = new Texture2D(graphicsDevice, width, height);
             BackgroundColor = backgroundColor;
             Pixels = new Color[width * height];
-            drawers = new List<ICanvasDrawer>();
+            drawers = new Dictionary<string, ICanvasDrawer>();
+            drawersStatusesById = new Dictionary<string, bool>();
         }
 
         public Texture2D Texture { get; }
@@ -30,16 +32,27 @@ namespace TDOS.MG.Skia
 
         public Color[] Pixels { get; }
 
-        public void AddDrawer(ICanvasDrawer drawer)
+        public void AddDrawer(string id, ICanvasDrawer drawer)
         {
-            drawers.Add(drawer);
+            drawers.Add(id, drawer);
+            drawersStatusesById.Add(id, true);
+        }
+
+        public void EnableDrawer(string id)
+        {
+            drawersStatusesById[id] = true;
+        }
+
+        public void DisableDrawer(string id)
+        {
+            drawersStatusesById[id] = false;
         }
 
         public void Render()
         {
             canvas.Clear(BackgroundColor);
 
-            foreach (var drawer in drawers)
+            foreach (var drawer in drawers.Where(p => drawersStatusesById[p.Key]).Select(p => p.Value))
             {
                 drawer.Draw(canvas);
             }
@@ -70,6 +83,7 @@ namespace TDOS.MG.Skia
         private readonly int height;
         private readonly SKBitmap bitmap;
         private readonly SKCanvas canvas;
-        private readonly IList<ICanvasDrawer> drawers;
+        private readonly IDictionary<string, ICanvasDrawer> drawers;
+        private readonly IDictionary<string, bool> drawersStatusesById;
     }
 }

@@ -3,9 +3,9 @@ using Box2DX.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SkiaSharp;
 using TDOS.Box2D.Skia;
 using TDOS.MG.Skia;
-using TDOS.MG.Skia.Implementations;
 using TDOS.MG.Utils;
 
 namespace TDOS.Game
@@ -79,10 +79,9 @@ namespace TDOS.Game
         protected override void Initialize()
         {
             bitmapToTextureRenderer = new BitmapToTextureRenderer(GraphicsDevice);
-            bitmapToTextureRenderer.AddDrawer(new SampleCanvasDrawer());
-            bitmapToTextureRenderer.AddDrawer(new RectDrawer());
-            bitmapToTextureRenderer.AddDrawer(new WorldDrawer(world, 32));
-            bitmapToTextureRenderer.AddDrawer(new FrameRateCounterDrawer(frameRateCounter));
+            bitmapToTextureRenderer.AddDrawer(Drawers.Colliders, new WorldDrawer(world, PixelsPerUnit));
+            bitmapToTextureRenderer.AddDrawer(Drawers.BodiesPosition, new BodiesPositionDrawer(world, PixelsPerUnit));
+            bitmapToTextureRenderer.AddDrawer(Drawers.FpsCounter, new FrameRateCounterDrawer(frameRateCounter));
 
             base.Initialize();
         }
@@ -119,6 +118,20 @@ namespace TDOS.Game
                 wasPressed = false;
             }
 
+            if (Mouse.GetState().RightButton == ButtonState.Pressed && !wasPressed2)
+            {
+                bitmapToTextureRenderer.DisableDrawer(Drawers.Colliders);
+
+                wasPressed2 = true;
+            }
+
+            if (Mouse.GetState().RightButton == ButtonState.Released && wasPressed2)
+            {
+                bitmapToTextureRenderer.EnableDrawer(Drawers.Colliders);
+
+                wasPressed2 = false;
+            }
+
             world.Step(deltaTime, 8, 2);
 
             base.Update(gameTime);
@@ -127,8 +140,8 @@ namespace TDOS.Game
         protected void SpawnSquare()
         {
             var mouseScreenPosition = Mouse.GetState().Position;
-            var x = mouseScreenPosition.X / 32;
-            var y = mouseScreenPosition.Y / 32;
+            var x = mouseScreenPosition.X / PixelsPerUnit;
+            var y = mouseScreenPosition.Y / PixelsPerUnit;
 
             var bodyDef = new BodyDef();
             bodyDef.Position.Set(x, y);
@@ -145,6 +158,7 @@ namespace TDOS.Game
         }
 
         bool wasPressed = false;
+        bool wasPressed2 = false;
 
         protected override void Draw(GameTime gameTime)
         {
@@ -163,6 +177,8 @@ namespace TDOS.Game
 
             base.Draw(gameTime);
         }
+
+        private const int PixelsPerUnit = 32;
 
         private readonly GraphicsDeviceManager graphics;
 
