@@ -1,12 +1,12 @@
 ﻿using System.IO;
 using Box2DX.Collision;
+using Box2DX.Common;
 using Box2DX.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using TDOS.Box2D.Skia;
-using TDOS.Game.Configuration;
 using TDOS.Game.Configuration.Helpers;
 using TDOS.Game.Resources;
 using TDOS.MG.Skia;
@@ -29,7 +29,7 @@ namespace TDOS.Game
             var worldBox = new AABB();
             worldBox.LowerBound.Set(-100f, -100f);
             worldBox.UpperBound.Set(100f, 100f);
-            world = new World(worldBox, new Box2DX.Common.Vec2(0f, 10f), doSleep: false);
+            world = new World(worldBox, Box2DX.Common.Vec2.Zero, doSleep: false);
 
             var groundBodyDef = new BodyDef();
             groundBodyDef.Position.Set(10f, 15f);
@@ -42,6 +42,7 @@ namespace TDOS.Game
 
             var movingBodyDef = new BodyDef();
             movingBodyDef.Position.Set(10f, 0f);
+            movingBodyDef.FixedRotation = true;
             movingBody = world.CreateBody(movingBodyDef);
 
             var movingShapeDef = new CircleDef();
@@ -112,7 +113,7 @@ namespace TDOS.Game
         protected override void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
+            world.Step(deltaTime, 8, 2);
             frameRateCounter.Update(deltaTime);
 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -132,21 +133,54 @@ namespace TDOS.Game
                 wasPressed = false;
             }
 
-            if (Mouse.GetState().RightButton == ButtonState.Pressed && !wasPressed2)
-            {
-                bitmapToTextureRenderer.DisableDrawer(Drawers.Colliders);
+            const float MaxSpeed = 10f;
+            const float Acc = 450f;
+            var velocity = movingBody.GetLinearVelocity();
 
-                wasPressed2 = true;
+            var isMovingLeft = Keyboard.GetState().IsKeyDown(Keys.A);
+            var isMovingRight = Keyboard.GetState().IsKeyDown(Keys.D);
+            var isMovingUp = Keyboard.GetState().IsKeyDown(Keys.W);
+            var isMovingDown = Keyboard.GetState().IsKeyDown(Keys.S);
+
+            movingBody.ApplyForce(velocity * -50f, movingBody.GetWorldCenter());
+
+            var force = new Box2DX.Common.Vec2(0, 0);
+            if (isMovingLeft && !isMovingRight)
+            {
+                force.Set(-Acc, 0);
+            }
+            else if (isMovingRight && !isMovingLeft)
+            {
+                force.Set(Acc, 0);
             }
 
-            if (Mouse.GetState().RightButton == ButtonState.Released && wasPressed2)
+            if (isMovingUp && !isMovingDown)
             {
-                bitmapToTextureRenderer.EnableDrawer(Drawers.Colliders);
-
-                wasPressed2 = false;
+                force.Set(force.X, -Acc);
+            }
+            else if (isMovingDown && !isMovingUp)
+            {
+                force.Set(force.X, Acc);
             }
 
-            world.Step(deltaTime, 8, 2);
+            force.Normalize();
+            force *= Acc;
+
+            if (velocity.Length() > MaxSpeed)
+            {
+                var normalizedVelocity = new Vec2(velocity.X, velocity.Y);
+                normalizedVelocity.Length();
+
+                normalizedVelocity *= force.Length();
+
+                movingBody.ApplyForce(force - normalizedVelocity, movingBody.GetWorldCenter());
+            }
+            else
+            {
+                movingBody.ApplyForce(force, movingBody.GetWorldCenter());
+            }
+
+            System.Console.WriteLine(movingBody.GetLinearVelocity().Length());
 
             base.Update(gameTime);
         }
