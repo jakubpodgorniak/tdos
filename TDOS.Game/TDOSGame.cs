@@ -1,10 +1,14 @@
-﻿using Box2DX.Collision;
+﻿using System.IO;
+using Box2DX.Collision;
 using Box2DX.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SkiaSharp;
+using Newtonsoft.Json;
 using TDOS.Box2D.Skia;
+using TDOS.Game.Configuration;
+using TDOS.Game.Configuration.Helpers;
+using TDOS.Game.Resources;
 using TDOS.MG.Skia;
 using TDOS.MG.Utils;
 
@@ -70,6 +74,9 @@ namespace TDOS.Game
 
             IsMouseVisible = true;
             IsFixedTimeStep = false;
+
+            configuration = JsonConvert.DeserializeObject<Configuration.Configuration>(
+                File.ReadAllText(@"Resources\Configuration.json"));
         }
 
         Body groundBody;
@@ -82,6 +89,13 @@ namespace TDOS.Game
             bitmapToTextureRenderer.AddDrawer(Drawers.Colliders, new WorldDrawer(world, PixelsPerUnit));
             bitmapToTextureRenderer.AddDrawer(Drawers.BodiesPosition, new BodiesPositionDrawer(world, PixelsPerUnit));
             bitmapToTextureRenderer.AddDrawer(Drawers.FpsCounter, new FrameRateCounterDrawer(frameRateCounter));
+
+            var visiblityController = new DebugInterfaceVisibilityController(bitmapToTextureRenderer);
+            visiblityController.RefreshVisibility(configuration.DebugInterface);
+
+            configurationWatcher = new ConfigurationWatcher(
+                @".\Resources\Configuration.json",
+                config => visiblityController.RefreshVisibility(config.DebugInterface));
 
             base.Initialize();
         }
@@ -149,7 +163,7 @@ namespace TDOS.Game
             var body = world.CreateBody(bodyDef);
 
             var shapeDef = new PolygonDef();
-            shapeDef.SetAsBox(0.25f, 0.25f);
+            shapeDef.SetAsBox(0.7f, 0.7f);
             shapeDef.Friction = .5f;
             shapeDef.Density = 5f;
 
@@ -184,7 +198,11 @@ namespace TDOS.Game
 
         private readonly FrameRateCounter frameRateCounter;
 
+        private readonly Configuration.Configuration configuration;
+
         private BitmapToTextureRenderer bitmapToTextureRenderer;
+
+        private ConfigurationWatcher configurationWatcher;
 
         private World world;
 

@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Box2DX.Standard" Version="1.0.1" />
     <PackageReference Include="MonoGame.Framework.DesktopGL.Core" Version="3.8.0.13" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Drawers.Designer.cs">
+    <Compile Update="Resources\Drawers.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Drawers.resx</DependentUpon>
@@ -29,10 +30,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Drawers.resx">
+    <EmbeddedResource Update="Resources\Drawers.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Drawers.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
