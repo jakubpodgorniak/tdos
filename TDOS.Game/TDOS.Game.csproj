@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Content\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\TDOS.Box2D.Skia\TDOS.Box2D.Skia.csproj" />
     <ProjectReference Include="..\TDOS.MG.Skia\TDOS.MG.Skia.csproj" />
     <ProjectReference Include="..\TDOS.MG.Utils\TDOS.MG.Utils.csproj" />
@@ -40,6 +36,12 @@
     <None Update="Resources\Configuration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Content/bin/Windows/**/*" Link="Content\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

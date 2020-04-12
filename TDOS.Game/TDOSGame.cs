@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Box2DX.Collision;
 using Box2DX.Common;
 using Box2DX.Dynamics;
@@ -8,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using TDOS.Box2D.Skia;
 using TDOS.Game.Configuration.Helpers;
+using TDOS.Game.Rendering;
 using TDOS.Game.Resources;
 using TDOS.MG.Skia;
 using TDOS.MG.Utils;
@@ -78,6 +80,10 @@ namespace TDOS.Game
 
             configuration = JsonConvert.DeserializeObject<Configuration.Configuration>(
                 File.ReadAllText(@"Resources\Configuration.json"));
+
+            //graphics.IsFullScreen = true;
+
+            bodySprites = new List<BodySprite>();
         }
 
         Body groundBody;
@@ -104,6 +110,8 @@ namespace TDOS.Game
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            crateTexture = Content.Load<Texture2D>("crate");
         }
 
         protected override void UnloadContent()
@@ -180,8 +188,6 @@ namespace TDOS.Game
                 movingBody.ApplyForce(force, movingBody.GetWorldCenter());
             }
 
-            System.Console.WriteLine(movingBody.GetLinearVelocity().Length());
-
             base.Update(gameTime);
         }
 
@@ -197,16 +203,20 @@ namespace TDOS.Game
             var body = world.CreateBody(bodyDef);
 
             var shapeDef = new PolygonDef();
-            shapeDef.SetAsBox(0.7f, 0.7f);
+            shapeDef.SetAsBox(0.5f, 0.5f);
             shapeDef.Friction = .5f;
             shapeDef.Density = 5f;
 
             body.CreateShape(shapeDef);
             body.SetMassFromShapes();
+
+            bodySprites.Add(new BodySprite(
+                crateTexture,
+                body,
+                PixelsPerUnit));
         }
 
         bool wasPressed = false;
-        bool wasPressed2 = false;
 
         protected override void Draw(GameTime gameTime)
         {
@@ -215,6 +225,11 @@ namespace TDOS.Game
             GraphicsDevice.Clear(new Microsoft.Xna.Framework.Color(69, 76, 82, 255));
 
             spriteBatch.Begin(blendState: BlendState.AlphaBlend);
+
+            foreach (var bodySprite in bodySprites)
+            {
+                bodySprite.Render(spriteBatch);
+            }
 
             spriteBatch.Draw(
                 bitmapToTextureRenderer.Texture,
@@ -241,5 +256,9 @@ namespace TDOS.Game
         private World world;
 
         private SpriteBatch spriteBatch;
+
+        private Texture2D crateTexture;
+
+        private IList<BodySprite> bodySprites;
     }
 }
