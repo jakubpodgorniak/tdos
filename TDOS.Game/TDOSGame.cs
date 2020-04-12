@@ -48,32 +48,20 @@ namespace TDOS.Game
             movingBody = world.CreateBody(movingBodyDef);
 
             var movingShapeDef = new CircleDef();
-            movingShapeDef.LocalPosition = new Box2DX.Common.Vec2(-1f, 0f);
+            movingShapeDef.LocalPosition = Vec2.Zero;
             movingShapeDef.Radius = 1f;
             movingShapeDef.Density = 1f;
             movingShapeDef.Friction = 0.5f;
 
-            var movingShapeDef2 = new CircleDef();
-            movingShapeDef2.LocalPosition = new Box2DX.Common.Vec2(1f, 0f);
-            movingShapeDef2.Radius = 1f;
-            movingShapeDef2.Density = 1f;
-            movingShapeDef2.Friction = 0.5f;
+            //var movingShapeDef2 = new CircleDef();
+            //movingShapeDef2.LocalPosition = new Box2DX.Common.Vec2(1f, 0f);
+            //movingShapeDef2.Radius = 1f;
+            //movingShapeDef2.Density = 1f;
+            //movingShapeDef2.Friction = 0.5f;
 
             movingBody.CreateShape(movingShapeDef);
-            movingBody.CreateShape(movingShapeDef2);
+            //movingBody.CreateShape(movingShapeDef2);
             movingBody.SetMassFromShapes();
-
-            var movingBodyDef2 = new BodyDef();
-            movingBodyDef2.Position.Set(12.5f, -4f);
-            movingBody2 = world.CreateBody(movingBodyDef2);
-
-            var movingShapeDef3 = new PolygonDef();
-            movingShapeDef3.SetAsBox(0.7f, 0.7f);
-            movingShapeDef3.Friction = .5f;
-            movingShapeDef3.Density = 1f;
-
-            movingBody2.CreateShape(movingShapeDef3);
-            movingBody2.SetMassFromShapes();
 
             IsMouseVisible = true;
             IsFixedTimeStep = false;
@@ -81,14 +69,13 @@ namespace TDOS.Game
             configuration = JsonConvert.DeserializeObject<Configuration.Configuration>(
                 File.ReadAllText(@"Resources\Configuration.json"));
 
-            //graphics.IsFullScreen = true;
+            graphics.IsFullScreen = true;
 
             bodySprites = new List<BodySprite>();
         }
 
         Body groundBody;
         Body movingBody;
-        Body movingBody2;
 
         protected override void Initialize()
         {
@@ -112,6 +99,11 @@ namespace TDOS.Game
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             crateTexture = Content.Load<Texture2D>("crate");
+
+            bodySprites.Add(new BodySprite(
+                Content.Load<Texture2D>("hero"),
+                movingBody,
+                PixelsPerUnit));
         }
 
         protected override void UnloadContent()
@@ -198,6 +190,7 @@ namespace TDOS.Game
             var y = mouseScreenPosition.Y / PixelsPerUnit;
 
             var bodyDef = new BodyDef();
+            bodyDef.FixedRotation = true;
             bodyDef.Position.Set(x, y);
 
             var body = world.CreateBody(bodyDef);
