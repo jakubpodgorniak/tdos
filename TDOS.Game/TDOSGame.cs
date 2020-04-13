@@ -23,8 +23,8 @@ namespace TDOS.Game
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
+            graphics.PreferredBackBufferWidth = 1600;
+            graphics.PreferredBackBufferHeight = 900;
 
             frameRateCounter = new FrameRateCounter(120);
 
@@ -34,7 +34,7 @@ namespace TDOS.Game
             world = new World(worldBox, Box2DX.Common.Vec2.Zero, doSleep: false);
 
             var groundBodyDef = new BodyDef();
-            groundBodyDef.Position.Set(10f, 15f);
+            groundBodyDef.Position.Set(10f, 13f);
             groundBody = world.CreateBody(groundBodyDef);
 
             var groundShapeDef = new PolygonDef();
@@ -69,7 +69,7 @@ namespace TDOS.Game
             configuration = JsonConvert.DeserializeObject<Configuration.Configuration>(
                 File.ReadAllText(@"Resources\Configuration.json"));
 
-            graphics.IsFullScreen = true;
+            //graphics.IsFullScreen = true;
 
             bodySprites = new List<BodySprite>();
         }
@@ -104,6 +104,14 @@ namespace TDOS.Game
                 Content.Load<Texture2D>("hero"),
                 movingBody,
                 PixelsPerUnit));
+
+            renderTarget = new RenderTarget2D(
+                GraphicsDevice,
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
         }
 
         protected override void UnloadContent()
@@ -186,8 +194,8 @@ namespace TDOS.Game
         protected void SpawnSquare()
         {
             var mouseScreenPosition = Mouse.GetState().Position;
-            var x = mouseScreenPosition.X / PixelsPerUnit;
-            var y = mouseScreenPosition.Y / PixelsPerUnit;
+            var x = (mouseScreenPosition.X / 2) / PixelsPerUnit;
+            var y = (mouseScreenPosition.Y / 2) / PixelsPerUnit;
 
             var bodyDef = new BodyDef();
             bodyDef.FixedRotation = true;
@@ -215,6 +223,30 @@ namespace TDOS.Game
         {
             bitmapToTextureRenderer.Render();
 
+            DrawToRenderTarget();
+
+            spriteBatch.Begin(SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp,
+                DepthStencilState.None,
+                RasterizerState.CullNone,
+                null);
+
+            spriteBatch.Draw(
+                renderTarget,
+                new Rectangle(0, 0, 2 * RenderTargetWidth, 2 * RenderTargetHeight),
+                new Rectangle(0, 0, RenderTargetWidth, RenderTargetHeight),
+                Microsoft.Xna.Framework.Color.White);
+
+            spriteBatch.End();
+
+            base.Draw(gameTime);
+        }
+
+        private void DrawToRenderTarget()
+        {
+            GraphicsDevice.SetRenderTarget(renderTarget);
+
             GraphicsDevice.Clear(new Microsoft.Xna.Framework.Color(69, 76, 82, 255));
 
             spriteBatch.Begin(blendState: BlendState.AlphaBlend);
@@ -231,10 +263,14 @@ namespace TDOS.Game
 
             spriteBatch.End();
 
-            base.Draw(gameTime);
+            GraphicsDevice.SetRenderTarget(null);
         }
 
         private const int PixelsPerUnit = 32;
+
+        private const int RenderTargetWidth = 800;
+
+        private const int RenderTargetHeight = 450;
 
         private readonly GraphicsDeviceManager graphics;
 
@@ -249,6 +285,8 @@ namespace TDOS.Game
         private World world;
 
         private SpriteBatch spriteBatch;
+
+        private RenderTarget2D renderTarget;
 
         private Texture2D crateTexture;
 
