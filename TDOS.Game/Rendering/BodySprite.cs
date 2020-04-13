@@ -6,11 +6,16 @@ namespace TDOS.Game.Rendering
 {
     public class BodySprite
     {
-        public BodySprite(Texture2D texture, Body body, int pixelsPerUnit)
+        public BodySprite(
+            Texture2D texture,
+            Body body,
+            int pixelsPerUnit,
+            Vector2? origin = null)
         {
             this.texture = texture;
             this.body = body;
             this.pixelsPerUnit = pixelsPerUnit;
+            this.origin = origin;
         }
 
         public void Render(SpriteBatch spriteBatch)
@@ -30,13 +35,17 @@ namespace TDOS.Game.Rendering
                 null,
                 Microsoft.Xna.Framework.Color.White,
                 angle,
-                new Vector2(texWidth / 2, texHeight / 2),
+                GetOrigin(),
                 SpriteEffects.None,
                 0);
         }
 
+        private Vector2 GetOrigin()
+            => origin ?? new Vector2(texture.Width / 2, texture.Height / 2);
+
         private readonly Texture2D texture;
         private readonly Body body;
         private readonly int pixelsPerUnit;
+        private readonly Vector2? origin;
     }
 }

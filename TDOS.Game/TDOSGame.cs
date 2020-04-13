@@ -49,7 +49,7 @@ namespace TDOS.Game
 
             var movingShapeDef = new CircleDef();
             movingShapeDef.LocalPosition = Vec2.Zero;
-            movingShapeDef.Radius = 1f;
+            movingShapeDef.Radius = 0.55f;
             movingShapeDef.Density = 1f;
             movingShapeDef.Friction = 0.5f;
 
@@ -79,7 +79,7 @@ namespace TDOS.Game
 
         protected override void Initialize()
         {
-            bitmapToTextureRenderer = new BitmapToTextureRenderer(GraphicsDevice);
+            bitmapToTextureRenderer = new BitmapToTextureRenderer(GraphicsDevice, RenderTargetWidth, RenderTargetHeight);
             bitmapToTextureRenderer.AddDrawer(Drawers.Colliders, new WorldDrawer(world, PixelsPerUnit));
             bitmapToTextureRenderer.AddDrawer(Drawers.BodiesPosition, new BodiesPositionDrawer(world, PixelsPerUnit));
             bitmapToTextureRenderer.AddDrawer(Drawers.FpsCounter, new FrameRateCounterDrawer(frameRateCounter));
@@ -103,7 +103,8 @@ namespace TDOS.Game
             bodySprites.Add(new BodySprite(
                 Content.Load<Texture2D>("hero"),
                 movingBody,
-                PixelsPerUnit));
+                PixelsPerUnit,
+                new Vector2(18, 22)));
 
             renderTarget = new RenderTarget2D(
                 GraphicsDevice,
@@ -188,6 +189,15 @@ namespace TDOS.Game
                 movingBody.ApplyForce(force, movingBody.GetWorldCenter());
             }
 
+            var mousePosition = Mouse.GetState().Position;
+            var mousePositionVec = new Vec2(mousePosition.X / (2f * PixelsPerUnit), mousePosition.Y / (2f * PixelsPerUnit));
+            var bodyPosition = movingBody.GetPosition();
+            var angle = System.Math.Atan2(
+                mousePositionVec.Y - bodyPosition.Y,
+                mousePositionVec.X - bodyPosition.X);
+
+            movingBody.SetXForm(movingBody.GetPosition(), (float)angle);
+
             base.Update(gameTime);
         }
 
@@ -199,6 +209,7 @@ namespace TDOS.Game
 
             var bodyDef = new BodyDef();
             bodyDef.FixedRotation = true;
+            bodyDef.LinearDamping = 8f;
             bodyDef.Position.Set(x, y);
 
             var body = world.CreateBody(bodyDef);

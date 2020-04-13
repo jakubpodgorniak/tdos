@@ -9,14 +9,18 @@ namespace TDOS.MG.Skia
 {
     public class BitmapToTextureRenderer : IDisposable
     {
-        public BitmapToTextureRenderer(GraphicsDevice graphicsDevice)
-            : this(graphicsDevice, SKColors.Transparent) { }
+        public BitmapToTextureRenderer(GraphicsDevice graphicsDevice, int width, int height)
+            : this(graphicsDevice, SKColors.Transparent, width, height) { }
 
-        public BitmapToTextureRenderer(GraphicsDevice graphicsDevice, SKColor backgroundColor)
+        public BitmapToTextureRenderer(
+            GraphicsDevice graphicsDevice,
+            SKColor backgroundColor,
+            int width,
+            int height)
         {
             this.graphicsDevice = graphicsDevice;
-            width = this.graphicsDevice.PresentationParameters.BackBufferWidth;
-            height = this.graphicsDevice.PresentationParameters.BackBufferHeight;
+            this.width = width;
+            this.height = height;
             this.bitmap = new SKBitmap(width, height);
             this.canvas = new SKCanvas(bitmap);
             Texture = new Texture2D(graphicsDevice, width, height);
