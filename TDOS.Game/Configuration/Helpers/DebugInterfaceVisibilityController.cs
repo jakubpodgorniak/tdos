@@ -14,7 +14,7 @@ namespace TDOS.Game.Configuration.Helpers
         {
             RefreshVisibility(Drawers.FpsCounter, config.FpsCounterVisible);
             RefreshVisibility(Drawers.Colliders, config.CollidersDrawing);
-            RefreshVisibility(Drawers.BodiesPosition, config.BodiesPositionDrawing);
+            RefreshVisibility(Drawers.BodiesStatus, config.BodiesPositionDrawing);
         }
 
         private void RefreshVisibility(string drawerId, bool isVisible)

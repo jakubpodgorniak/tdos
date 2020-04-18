@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using TDOS.Box2D.Skia;
+using TDOS.Game.Characters;
 using TDOS.Game.Configuration.Helpers;
 using TDOS.Game.Rendering;
 using TDOS.Game.Resources;
@@ -31,7 +32,7 @@ namespace TDOS.Game
             var worldBox = new AABB();
             worldBox.LowerBound.Set(-100f, -100f);
             worldBox.UpperBound.Set(100f, 100f);
-            world = new World(worldBox, Box2DX.Common.Vec2.Zero, doSleep: false);
+            world = new World(worldBox, Vec2.Zero, doSleep: false);
 
             var groundBodyDef = new BodyDef();
             groundBodyDef.Position.Set(10f, 13f);
@@ -39,32 +40,30 @@ namespace TDOS.Game
 
             var groundShapeDef = new PolygonDef();
             groundShapeDef.SetAsBox(15, 1);
-            groundShapeDef.Friction = .5f;
             groundBody.CreateShape(groundShapeDef);
 
             var movingBodyDef = new BodyDef();
             movingBodyDef.Position.Set(10f, 0f);
             movingBodyDef.FixedRotation = true;
-            movingBody = world.CreateBody(movingBodyDef);
+            movingBodyDef.LinearDamping = 8.5f;
+            var movingBody = world.CreateBody(movingBodyDef);
 
             var movingShapeDef = new CircleDef();
             movingShapeDef.LocalPosition = Vec2.Zero;
             movingShapeDef.Radius = 0.55f;
             movingShapeDef.Density = 1f;
-            movingShapeDef.Friction = 0.5f;
-
-            //var movingShapeDef2 = new CircleDef();
-            //movingShapeDef2.LocalPosition = new Box2DX.Common.Vec2(1f, 0f);
-            //movingShapeDef2.Radius = 1f;
-            //movingShapeDef2.Density = 1f;
-            //movingShapeDef2.Friction = 0.5f;
 
             movingBody.CreateShape(movingShapeDef);
-            //movingBody.CreateShape(movingShapeDef2);
             movingBody.SetMassFromShapes();
 
+            hero = new Character(movingBody)
+            {
+                Acceleration = 80f,
+                MaxSpeed = 8f // m/s
+            };
+
             IsMouseVisible = true;
-            IsFixedTimeStep = false;
+            IsFixedTimeStep = true;
 
             configuration = JsonConvert.DeserializeObject<Configuration.Configuration>(
                 File.ReadAllText(@"Resources\Configuration.json"));
@@ -75,19 +74,18 @@ namespace TDOS.Game
         }
 
         Body groundBody;
-        Body movingBody;
 
         protected override void Initialize()
         {
             bitmapToTextureRenderer = new BitmapToTextureRenderer(GraphicsDevice, RenderTargetWidth, RenderTargetHeight);
             bitmapToTextureRenderer.AddDrawer(Drawers.Colliders, new WorldDrawer(world, PixelsPerUnit));
-            bitmapToTextureRenderer.AddDrawer(Drawers.BodiesPosition, new BodiesPositionDrawer(world, PixelsPerUnit));
+            bitmapToTextureRenderer.AddDrawer(Drawers.BodiesStatus, new BodiesStatusDrawer(world, PixelsPerUnit) { DisplayVelocity = true });
             bitmapToTextureRenderer.AddDrawer(Drawers.FpsCounter, new FrameRateCounterDrawer(frameRateCounter));
 
             var visiblityController = new DebugInterfaceVisibilityController(bitmapToTextureRenderer);
             visiblityController.RefreshVisibility(configuration.DebugInterface);
 
-            configurationWatcher = new ConfigurationWatcher(
+            var configurationWatcher = new ConfigurationWatcher(
                 @".\Resources\Configuration.json",
                 config => visiblityController.RefreshVisibility(config.DebugInterface));
 
@@ -102,7 +100,7 @@ namespace TDOS.Game
 
             bodySprites.Add(new BodySprite(
                 Content.Load<Texture2D>("hero"),
-                movingBody,
+                hero.Body,
                 PixelsPerUnit,
                 new Vector2(18, 22)));
 
@@ -115,14 +113,11 @@ namespace TDOS.Game
                 DepthFormat.Depth24);
         }
 
-        protected override void UnloadContent()
-        {
-        }
+        protected override void UnloadContent() { }
 
         protected override void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            world.Step(deltaTime, 8, 2);
             frameRateCounter.Update(deltaTime);
 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -142,61 +137,20 @@ namespace TDOS.Game
                 wasPressed = false;
             }
 
-            const float MaxSpeed = 10f;
-            const float Acc = 450f;
-            var velocity = movingBody.GetLinearVelocity();
-
-            var isMovingLeft = Keyboard.GetState().IsKeyDown(Keys.A);
-            var isMovingRight = Keyboard.GetState().IsKeyDown(Keys.D);
-            var isMovingUp = Keyboard.GetState().IsKeyDown(Keys.W);
-            var isMovingDown = Keyboard.GetState().IsKeyDown(Keys.S);
-
-            movingBody.ApplyForce(velocity * -50f, movingBody.GetWorldCenter());
-
-            var force = new Box2DX.Common.Vec2(0, 0);
-            if (isMovingLeft && !isMovingRight)
-            {
-                force.Set(-Acc, 0);
-            }
-            else if (isMovingRight && !isMovingLeft)
-            {
-                force.Set(Acc, 0);
-            }
-
-            if (isMovingUp && !isMovingDown)
-            {
-                force.Set(force.X, -Acc);
-            }
-            else if (isMovingDown && !isMovingUp)
-            {
-                force.Set(force.X, Acc);
-            }
-
-            force.Normalize();
-            force *= Acc;
-
-            if (velocity.Length() > MaxSpeed)
-            {
-                var normalizedVelocity = new Vec2(velocity.X, velocity.Y);
-                normalizedVelocity.Length();
-
-                normalizedVelocity *= force.Length();
-
-                movingBody.ApplyForce(force - normalizedVelocity, movingBody.GetWorldCenter());
-            }
-            else
-            {
-                movingBody.ApplyForce(force, movingBody.GetWorldCenter());
-            }
+            var activeDirections = new List<MoveDirection>();
 
             var mousePosition = Mouse.GetState().Position;
             var mousePositionVec = new Vec2(mousePosition.X / (2f * PixelsPerUnit), mousePosition.Y / (2f * PixelsPerUnit));
-            var bodyPosition = movingBody.GetPosition();
-            var angle = System.Math.Atan2(
-                mousePositionVec.Y - bodyPosition.Y,
-                mousePositionVec.X - bodyPosition.X);
 
-            movingBody.SetXForm(movingBody.GetPosition(), (float)angle);
+            if (Keyboard.GetState().IsKeyDown(Keys.W)) activeDirections.Add(MoveDirection.Up);
+            if (Keyboard.GetState().IsKeyDown(Keys.D)) activeDirections.Add(MoveDirection.Right);
+            if (Keyboard.GetState().IsKeyDown(Keys.S)) activeDirections.Add(MoveDirection.Down);
+            if (Keyboard.GetState().IsKeyDown(Keys.A)) activeDirections.Add(MoveDirection.Left);
+
+            hero.UpdatePosition(activeDirections.ToArray());
+            hero.UpdateRotation(mousePositionVec);
+
+            world.Step(deltaTime, 6, 2);
 
             base.Update(gameTime);
         }
@@ -291,8 +245,6 @@ namespace TDOS.Game
 
         private BitmapToTextureRenderer bitmapToTextureRenderer;
 
-        private ConfigurationWatcher configurationWatcher;
-
         private World world;
 
         private SpriteBatch spriteBatch;
@@ -302,5 +254,7 @@ namespace TDOS.Game
         private Texture2D crateTexture;
 
         private IList<BodySprite> bodySprites;
+
+        private Character hero;
     }
 }
