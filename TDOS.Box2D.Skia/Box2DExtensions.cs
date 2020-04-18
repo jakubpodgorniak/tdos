@@ -9,6 +9,14 @@ namespace TDOS.Box2D.Skia
 {
     public static class Box2DExtensions
     {
+        public static Vec2 GetNormalizedLinearVelocity(this Body body)
+        {
+            var velocity = body.GetLinearVelocity();
+            velocity.Normalize();
+
+            return velocity;
+        }
+
         public static SKPoint ToSKPoint(this Vec2 vec2, int scale)
             => new SKPoint(vec2.X * scale, vec2.Y * scale);
 

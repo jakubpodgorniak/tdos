@@ -61,11 +61,11 @@ namespace TDOS.Game.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BodiesPosition.
+        ///   Looks up a localized string similar to BodiesStatus.
         /// </summary>
-        internal static string BodiesPosition {
+        internal static string BodiesStatus {
             get {
-                return ResourceManager.GetString("BodiesPosition", resourceCulture);
+                return ResourceManager.GetString("BodiesStatus", resourceCulture);
             }
         }
         
