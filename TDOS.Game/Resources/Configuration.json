@@ -1,7 +1,8 @@
 {
   "DebugInterface": {
-    "FpsCounterVisible": true,
+    "FpsCounterVisible": false,
     "CollidersDrawing": false,
-    "BodiesPositionDrawing": true
+    "BodiesPositionDrawing": false,
+    "MessageQueue" :  true
   }
 }

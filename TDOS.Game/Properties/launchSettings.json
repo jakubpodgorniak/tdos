@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "TDOS.Game": {
+      "commandName": "Project"
+    },
+    "PIGZ.Standalone": {
+      "commandName": "Project"
+    },
+    "PIGZ.Server": {
+      "commandName": "Project",
+      "commandLineArgs": "server"
+    },
+    "PIGZ.Client": {
+      "commandName": "Project",
+      "commandLineArgs": "client"
+    }
+  }
+}

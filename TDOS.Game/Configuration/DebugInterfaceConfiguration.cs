@@ -7,5 +7,7 @@
         public bool CollidersDrawing { get; set; }
 
         public bool BodiesPositionDrawing { get; set; }
+
+        public bool MessageQueue { get; set; }
     }
 }
