@@ -86,5 +86,14 @@ namespace TDOS.Game.Resources {
                 return ResourceManager.GetString("FpsCounter", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MessageQueue.
+        /// </summary>
+        internal static string MessageQueue {
+            get {
+                return ResourceManager.GetString("MessageQueue", resourceCulture);
+            }
+        }
     }
 }

@@ -126,4 +126,7 @@
   <data name="FpsCounter" xml:space="preserve">
     <value>FpsCounter</value>
   </data>
+  <data name="MessageQueue" xml:space="preserve">
+    <value>MessageQueue</value>
+  </data>
 </root>
